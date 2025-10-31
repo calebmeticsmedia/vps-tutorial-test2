@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>VPS Fetch/Write Demo</title>
+  <style>
+    body{font-family:system-ui,Arial;padding:2rem;max-width:760px;margin:auto;line-height:1.5}
+    .card{padding:1rem;border:1px solid #ddd;border-radius:12px;margin:1rem 0}
+    .row{margin:.75rem 0}
+    button{padding:.6rem 1rem;cursor:pointer}
+    .ok{color:green}.err{color:#b00020}
+    pre{background:#fafafa;border:1px solid #eee;padding:1rem;border-radius:8px;overflow:auto}
+  </style>
+  <!-- Optional: Umami (fill later)
+  <script async src="https://analytics.yourdomain.com/script.js" data-website-id="YOUR-UUID"></script>
+  -->
+</head>
+<body>
+  <h1>VPS Fetch/Write Demo</h1>
+  <p>This page is served by Node.js on your VPS. Use the buttons to call real API routes.</p>
+  <div class="card">
+    <h3>Read: Fetch Data (GET)</h3>
+    <div class="row">
+      <button id="getBtn">Fetch Data</button>
+      <span id="getMsg"></span>
+    </div>
+  </div>
+  <div class="card">
+    <h3>Write: Save an Event (POST)</h3>
+    <div class="row">
+      <button id="writeBtn">Write Data</button>
+      <span id="writeMsg"></span>
+    </div>
+  </div>
+  <div class="card">
+    <h3>Metrics (Live)</h3>
+    <pre id="metricsBox">Loading…</pre>
+  </div>
+<script>
+const $ = (id)=>document.getElementById(id);
+async function getJSON(url, opts){ const r=await fetch(url,opts); if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); }
+$('getBtn').onclick = async () => {
+  try {
+    const data = await getJSON('/api/time');
+    $('getMsg').textContent = 'Server time: ' + data.time;
+    $('getMsg').className = 'ok';
+    window.umami?.track('fetch_data');
+  } catch {
+    $('getMsg').textContent = 'Error';
+    $('getMsg').className = 'err';
+  }
+};
+$('writeBtn').onclick = async () => {
+  try {
+    const data = await getJSON('/api/demo-write', { method:'POST' });
+    $('writeMsg').textContent = 'Writes so far: ' + data.total;
+    $('writeMsg').className = 'ok';
+    window.umami?.track('write_data');
+    loadMetrics();
+  } catch {
+    $('writeMsg').textContent = 'Error';
+    $('writeMsg').className = 'err';
+  }
+};
+async function loadMetrics(){
+  try {
+    const m = await getJSON('/api/metrics');
+    $('metricsBox').textContent = JSON.stringify(m, null, 2);
+  } catch {
+    $('metricsBox').textContent = 'Error loading metrics';
+  }
+}
+loadMetrics();
+</script>
+</body>
+</html>
+
+
+
+
+
